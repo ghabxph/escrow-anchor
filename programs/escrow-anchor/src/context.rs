@@ -1,17 +1,29 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token::{ Token, TokenAccount };
-use std::mem::size_of;
 use crate::state::Trade;
+use anchor_lang::prelude::*;
+use anchor_spl::token::{Mint, Token, TokenAccount};
+use std::mem::size_of;
 
 #[derive(Accounts)]
 #[instruction(token_a_destination: Pubkey, token_b_destination: Pubkey)]
 pub struct InitializeAccounts<'info> {
-
-    /// @TODO: Initialize this!
     /// This is the account where Alice is going to send her Token A in exchange
     /// of Token B that is to be sent by Bob. Bob will receive Token A if the trade
     /// succeeds.
+    #[account(
+        init_if_needed,
+        token::mint = token_a_mint,
+        token::authority = authority,
+        seeds = [
+            token_a_mint.key().as_ref(),
+            authority.key().as_ref(),
+        ],
+        bump,
+        payer = authority
+    )]
     pub token_a_pda: Account<'info, TokenAccount>,
+
+    /// Token A Mint. Virtually, we can escrow any Solana Tokens.
+    pub token_a_mint: Account<'info, Mint>,
 
     /// Account that whose going to pay for this transaction.
     #[account(mut)]
@@ -32,20 +44,31 @@ pub struct InitializeAccounts<'info> {
     )]
     pub trade: Account<'info, Trade>,
 
-    /// System Program
-    pub system_program: Program<'info, System>
-}
+    /// Token Program
+    pub token_program: Program<'info, Token>,
 
+    /// System Program
+    pub rent: Sysvar<'info, Rent>,
+
+    /// System Program
+    pub system_program: Program<'info, System>,
+}
 
 /// Alice starts a trade with Bob by sending 'X' token to the program and
 /// requests 'Y' token to Bob for the trade to complete.
 #[derive(Accounts)]
 pub struct StartTrade<'info> {
-
     /// Address where Token A is coming from
     pub token_a_src: Account<'info, TokenAccount>,
 
     /// Address where Alice will send the Token A
+    #[account(
+        seeds = [
+            trade.token_a_mint.as_ref(),
+            trade.authority.as_ref(),
+        ],
+        bump,
+    )]
     pub token_a_pda_dest: Account<'info, TokenAccount>,
 
     /// Account that whose going to pay for this transaction.
@@ -72,8 +95,14 @@ pub struct StartTrade<'info> {
 /// requests 'Y' token to Bob for the trade to complete.
 #[derive(Accounts)]
 pub struct CancelTrade<'info> {
-
     /// PDA where Token A is coming from
+    #[account(
+        seeds = [
+            trade.token_a_mint.as_ref(),
+            trade.authority.as_ref(),
+        ],
+        bump,
+    )]
     pub token_a_pda_src: Account<'info, TokenAccount>,
 
     /// Address where program will send the Token A to (Alice's Token A Address)
@@ -84,10 +113,10 @@ pub struct CancelTrade<'info> {
 
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know how much do we owe from Alice.
-    /// 
+    ///
     /// NOTE: This code is vulnerable. Make sure that the account used here
     /// is the account that Alice is authorized to use.
-    /// 
+    ///
     /// One solution is not to use bump and use a keypair that Alice only
     /// controls.
     #[account(
@@ -110,9 +139,15 @@ pub struct CancelTrade<'info> {
 /// requests 'Y' token to Bob for the trade to complete.
 #[derive(Accounts)]
 pub struct AcceptTrade<'info> {
-
     /// Address where Alice sent the Token A. This is where Token A is coming from
     /// when Bob is going to receive Token A.
+    #[account(
+        seeds = [
+            trade.token_a_mint.as_ref(),
+            trade.authority.as_ref(),
+        ],
+        bump,
+    )]
     pub token_a_pda_src: Account<'info, TokenAccount>,
 
     /// Address where Bob's Token B is located. This is where Token B is coming from
@@ -133,10 +168,10 @@ pub struct AcceptTrade<'info> {
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know whether the trade must be executed or
     /// not.
-    /// 
+    ///
     /// NOTE: This code is vulnerable. Make sure that the account used here
     /// is the account that Alice is authorized to use.
-    /// 
+    ///
     /// One solution is not to use bump and use a keypair that Alice only
     /// controls.
     #[account(

@@ -8,6 +8,9 @@ pub struct Trade {
     /// succeeds.
     pub token_a_pda: Pubkey,
 
+    /// Mint of Token A.
+    pub token_a_mint: Pubkey,
+
     /// Initiator of this trade
     pub authority: Pubkey,
 

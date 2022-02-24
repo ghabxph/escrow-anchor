@@ -16,6 +16,7 @@ impl<'info> InitializeAccounts<'info> {
         token_b_request_amount: u64,
     ) -> Result<()>  {
         self.trade.token_a_pda = self.token_a_pda.key();
+        self.trade.token_a_mint = self.token_a_mint.key();
         self.trade.authority = self.authority.key();
         self.trade.token_a_source = token_a_source;
         self.trade.token_a_destination = token_a_destination;
