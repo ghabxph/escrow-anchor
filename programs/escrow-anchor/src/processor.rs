@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{ transfer, Transfer};
 use crate::context::*;
 
 impl<'info> InitializeAccounts<'info> {
@@ -34,12 +35,23 @@ impl<'info> StartTrade<'info> {
         &mut self, 
         token_a_to_send_amount: u64,
     ) -> Result<()>  {
-        
-        if token_a_to_send_amount != self.trade.token_a_to_send_amount {
-            // Throw error here.
-        }
 
-        // @TODO: Send Token A to self.token_a_pda
+        // Throw error when token amount to send does not match in state account
+        assert_eq!(token_a_to_send_amount, self.trade.token_a_to_send_amount);
+
+        // Send Token A to self.token_a_pda
+        transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(), 
+                Transfer{
+                    from: self.token_a_src.to_account_info(),
+                    to: self.token_a_pda_dest.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                }
+            ),
+            self.trade.token_a_to_send_amount
+        )?;
+
         self.trade.trade_began = true;
         Ok(())
     }
@@ -49,7 +61,22 @@ impl<'info> CancelTrade<'info> {
 
     pub fn cancel_trade(&mut self) -> Result<()>  {
 
-        // @TODO: Send Token A to token_a_source (Alice's Token A address)
+        // Confirm that given addresses are correct
+        assert_eq!(self.trade.token_a_pda, self.token_a_pda_src.key());
+        assert_eq!(self.trade.token_a_source, self.token_a_dest.key());
+
+        // Send Token A to Alice's Token A Address
+        transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(), 
+                Transfer{
+                    from: self.token_a_pda_src.to_account_info(),
+                    to: self.token_a_dest.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                }
+            ),
+            self.trade.token_a_to_send_amount
+        )?;
 
         self.trade.trade_cancelled = true;
         Ok(())
@@ -60,17 +87,42 @@ impl<'info> AcceptTrade<'info> {
 
     pub fn accept_trade(&mut self, token_b_to_send_amount: u64) -> Result<()>  {
 
-        if self.trade.trade_cancelled || self.trade.trade_done {
-            // Throw error here. Trade has been cancelled. Transfer of token should
-            // not happen.
-        }
+        // Throw error when trade has been cancelled or trade is already done and user still accept the trade.
+        assert_eq!(self.trade.trade_cancelled || self.trade.trade_done, true);
+        
+        // Throw error when requested amount by Alice is not given by Bob.
+        assert_ne!(self.trade.token_b_request_amount, token_b_to_send_amount);
 
-        if self.trade.token_b_request_amount != token_b_to_send_amount {
-            // Throw error here. No token should be sent to program.
-        }
+        // Make sure that destination addresses are correct before transaction proceeds
+        assert_eq!(self.trade.token_a_destination,  self.token_a_dest.key());
+        assert_eq!(self.trade.token_b_destination,  self.token_b_dest.key());
 
-        // Everything is good here. Token B should be sent to Alice and Token A
-        // should be received by Bob.
+        // Send Token A to Bob's Token A Address
+        transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(), 
+                Transfer{
+                    from: self.token_a_pda_src.to_account_info(),
+                    to: self.token_a_dest.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                }
+            ),
+            self.trade.token_a_to_send_amount
+        )?;
+
+        // Send Token B to Alice's Token B Address
+        transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(), 
+                Transfer{
+                    from: self.token_b_src.to_account_info(),
+                    to: self.token_b_dest.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                }
+            ),
+            self.trade.token_b_request_amount
+        )?;
+
         self.trade.trade_done = true;
         Ok(())
     }

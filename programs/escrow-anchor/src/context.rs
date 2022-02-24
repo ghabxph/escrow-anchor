@@ -73,6 +73,15 @@ pub struct StartTrade<'info> {
 #[derive(Accounts)]
 pub struct CancelTrade<'info> {
 
+    /// PDA where Token A is coming from
+    pub token_a_pda_src: Account<'info, TokenAccount>,
+
+    /// Address where program will send the Token A to (Alice's Token A Address)
+    pub token_a_dest: Account<'info, TokenAccount>,
+
+    /// Account that whose going to pay for this transaction.
+    pub authority: Signer<'info>,
+
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know how much do we owe from Alice.
     /// 
@@ -102,10 +111,24 @@ pub struct CancelTrade<'info> {
 #[derive(Accounts)]
 pub struct AcceptTrade<'info> {
 
-    /// Bob sends x amount of token to this PDA. If the amount sent by Bob matches
-    /// on what Alice requested, the exchange will succeed. Otherwise, the amount
-    /// sent by Bob will be refunded to him until he sent the correct amount.
-    pub token_b_pda: Account<'info, TokenAccount>,
+    /// Address where Alice sent the Token A. This is where Token A is coming from
+    /// when Bob is going to receive Token A.
+    pub token_a_pda_src: Account<'info, TokenAccount>,
+
+    /// Address where Bob's Token B is located. This is where Token B is coming from
+    /// when Alice is going to receive Token B.
+    pub token_b_src: Account<'info, TokenAccount>,
+
+    /// Bob's Token A Address where Bob is going to receive Alice's Token A when
+    /// transaction succeeds.
+    pub token_a_dest: Account<'info, TokenAccount>,
+
+    /// Alice's Token A Address where Alice is going to receive Bob's Token B when
+    /// transaction succeeds
+    pub token_b_dest: Account<'info, TokenAccount>,
+
+    /// Account that whose going to pay for this transaction.
+    pub authority: Signer<'info>,
 
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know whether the trade must be executed or
