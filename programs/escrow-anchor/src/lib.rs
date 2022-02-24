@@ -12,6 +12,11 @@ pub mod escrow_anchor {
     use super::*;
 
     /// Initializes account needed for trade between Alice and Bob to begin.
+    ///   token_a_destination: Bob's Token A Address
+    ///   token_b_destination: Alice's Token B Address
+    ///   token_a_source: Alice's Token A Address,
+    ///   token_a_to_send_amount: Amount Alice wanted to send to Bob in exchange of Token B,
+    ///   token_b_request_amount: Amount Alice wanted to receive from Bob in exchangne of Token A,
     pub fn initialize_accounts(
         ctx: Context<InitializeAccounts>,
         token_a_destination: Pubkey,
