@@ -1,3 +1,5 @@
+anchor_version = "0.22.0"
+
 [features]
 seeds = false
 
@@ -11,7 +13,7 @@ escrow_anchor = "5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/home/gabriel/.config/solana/id.json"
 
 [scripts]
