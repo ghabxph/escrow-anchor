@@ -60,21 +60,32 @@ impl<'info> StartTrade<'info> {
 
 impl<'info> CancelTrade<'info> {
 
-    pub fn cancel_trade(&mut self) -> Result<()>  {
+    pub fn cancel_trade(&mut self, trade_bump: &u8) -> Result<()>  {
+
+        msg!("Hello");
 
         // Confirm that given addresses are correct
         assert_eq!(self.trade.token_a_pda, self.token_a_pda_src.key());
         assert_eq!(self.trade.token_a_source, self.token_a_dest.key());
 
+        let authority_seeds = &[
+            self.trade.token_a_pda.as_ref(),
+            self.trade.token_a_destination.as_ref(),
+            self.trade.token_b_destination.as_ref(),
+            self.trade.authority.as_ref(),
+            &[*trade_bump],
+        ];
+
         // Send Token A to Alice's Token A Address
         transfer(
-            CpiContext::new(
+            CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 Transfer{
                     from: self.token_a_pda_src.to_account_info(),
                     to: self.token_a_dest.to_account_info(),
-                    authority: self.authority.to_account_info(),
-                }
+                    authority: self.trade.to_account_info(),
+                },
+                &[authority_seeds]
             ),
             self.trade.token_a_to_send_amount
         )?;
@@ -86,27 +97,36 @@ impl<'info> CancelTrade<'info> {
 
 impl<'info> AcceptTrade<'info> {
 
-    pub fn accept_trade(&mut self, token_b_to_send_amount: u64) -> Result<()>  {
+    pub fn accept_trade(&mut self, token_b_to_send_amount: u64, trade_bump: &u8) -> Result<()>  {
 
         // Throw error when trade has been cancelled or trade is already done and user still accept the trade.
         assert_eq!(self.trade.trade_cancelled || self.trade.trade_done, true);
-        
+
         // Throw error when requested amount by Alice is not given by Bob.
-        assert_ne!(self.trade.token_b_request_amount, token_b_to_send_amount);
+        assert_eq!(self.trade.token_b_request_amount, token_b_to_send_amount);
 
         // Make sure that destination addresses are correct before transaction proceeds
         assert_eq!(self.trade.token_a_destination,  self.token_a_dest.key());
         assert_eq!(self.trade.token_b_destination,  self.token_b_dest.key());
 
+        let authority_seeds = &[
+            self.trade.token_a_pda.as_ref(),
+            self.trade.token_a_destination.as_ref(),
+            self.trade.token_b_destination.as_ref(),
+            self.trade.authority.as_ref(),
+            &[*trade_bump],
+        ];
+
         // Send Token A to Bob's Token A Address
         transfer(
-            CpiContext::new(
+            CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 Transfer{
                     from: self.token_a_pda_src.to_account_info(),
                     to: self.token_a_dest.to_account_info(),
-                    authority: self.authority.to_account_info(),
-                }
+                    authority: self.trade.to_account_info(),
+                },
+                &[authority_seeds],
             ),
             self.trade.token_a_to_send_amount
         )?;

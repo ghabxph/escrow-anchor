@@ -44,7 +44,7 @@ pub mod escrow_anchor {
     /// trade agreement. Cancelling the trade restores Alice's token that she sent
     /// in the Token A PDA.
     pub fn cancel_trade(ctx: Context<CancelTrade>) -> Result<()>  {
-        ctx.accounts.cancel_trade()
+        ctx.accounts.cancel_trade(ctx.bumps.get("trade").unwrap())
     }
 
     /// Bob accepts the trade by sending 'Y' token requested by Alice to the
@@ -52,6 +52,6 @@ pub mod escrow_anchor {
     /// the trade will succeed. If not, then the trade will fail and the token
     /// sent by Bob will return to Bob.
     pub fn accept_trade(ctx: Context<AcceptTrade>, token_b_to_send_amount: u64) -> Result<()>  {
-        ctx.accounts.accept_trade(token_b_to_send_amount)
+        ctx.accounts.accept_trade(token_b_to_send_amount, ctx.bumps.get("trade").unwrap())
     }
 }

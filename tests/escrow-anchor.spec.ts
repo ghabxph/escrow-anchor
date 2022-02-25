@@ -237,7 +237,7 @@ describe("Start trade then complete", () => {
           trade,
           tokenProgram: TOKEN_PROGRAM_ID,
         },
-        signers: [alice.keypair]
+        signers: [bob.keypair]
       }
     );
   });

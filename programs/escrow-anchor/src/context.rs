@@ -1,4 +1,4 @@
-use crate::state::Trade;
+use crate::state::*;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem::size_of;
@@ -12,7 +12,7 @@ pub struct InitializeAccounts<'info> {
     #[account(
         init_if_needed,
         token::mint = token_a_mint,
-        token::authority = authority,
+        token::authority = trade,
         seeds = [
             token_a_mint.key().as_ref(),
             authority.key().as_ref(),
@@ -59,10 +59,12 @@ pub struct InitializeAccounts<'info> {
 #[derive(Accounts)]
 pub struct StartTrade<'info> {
     /// Address where Token A is coming from
+    #[account(mut)]
     pub token_a_src: Account<'info, TokenAccount>,
 
     /// Address where Alice will send the Token A
     #[account(
+        mut,
         seeds = [
             trade.token_a_mint.as_ref(),
             trade.authority.as_ref(),
@@ -97,6 +99,7 @@ pub struct StartTrade<'info> {
 pub struct CancelTrade<'info> {
     /// PDA where Token A is coming from
     #[account(
+        mut,
         seeds = [
             trade.token_a_mint.as_ref(),
             trade.authority.as_ref(),
@@ -106,6 +109,7 @@ pub struct CancelTrade<'info> {
     pub token_a_pda_src: Account<'info, TokenAccount>,
 
     /// Address where program will send the Token A to (Alice's Token A Address)
+    #[account(mut)]
     pub token_a_dest: Account<'info, TokenAccount>,
 
     /// Account that whose going to pay for this transaction.
@@ -142,6 +146,7 @@ pub struct AcceptTrade<'info> {
     /// Address where Alice sent the Token A. This is where Token A is coming from
     /// when Bob is going to receive Token A.
     #[account(
+        mut,
         seeds = [
             trade.token_a_mint.as_ref(),
             trade.authority.as_ref(),
@@ -152,14 +157,17 @@ pub struct AcceptTrade<'info> {
 
     /// Address where Bob's Token B is located. This is where Token B is coming from
     /// when Alice is going to receive Token B.
+    #[account(mut)]
     pub token_b_src: Account<'info, TokenAccount>,
 
     /// Bob's Token A Address where Bob is going to receive Alice's Token A when
     /// transaction succeeds.
+    #[account(mut)]
     pub token_a_dest: Account<'info, TokenAccount>,
 
     /// Alice's Token A Address where Alice is going to receive Bob's Token B when
     /// transaction succeeds
+    #[account(mut)]
     pub token_b_dest: Account<'info, TokenAccount>,
 
     /// Account that whose going to pay for this transaction.

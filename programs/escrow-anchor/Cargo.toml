@@ -19,3 +19,4 @@ default = []
 anchor-lang = { version = "0.22.0", features = [ "init-if-needed" ] }
 anchor-spl = "0.22.0"
 spl-token = { version = "3.3.0", features = [ "no-entrypoint" ] }
+solana-program = "1.8.5"
