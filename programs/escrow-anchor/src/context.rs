@@ -118,9 +118,6 @@ pub struct CancelTrade<'info> {
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know how much do we owe from Alice.
     ///
-    /// NOTE: This code is vulnerable. Make sure that the account used here
-    /// is the account that Alice is authorized to use.
-    ///
     /// One solution is not to use bump and use a keypair that Alice only
     /// controls.
     #[account(
@@ -176,9 +173,6 @@ pub struct AcceptTrade<'info> {
     /// Account where we are going to query information about the trade.
     /// This account is needed for us to know whether the trade must be executed or
     /// not.
-    ///
-    /// NOTE: This code is vulnerable. Make sure that the account used here
-    /// is the account that Alice is authorized to use.
     ///
     /// One solution is not to use bump and use a keypair that Alice only
     /// controls.
