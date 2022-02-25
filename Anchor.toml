@@ -9,6 +9,9 @@ escrow_anchor = "5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe"
 [programs.devnet]
 escrow_anchor = "5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe"
 
+[programs.mainnet]
+escrow_anchor = "5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe"
+
 [registry]
 url = "https://anchor.projectserum.com"
 
