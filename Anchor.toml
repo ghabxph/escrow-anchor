@@ -11,7 +11,7 @@ escrow_anchor = "5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "/home/gabriel/.config/solana/id.json"
 
 [scripts]
