@@ -38,7 +38,13 @@ impl<'info> StartTrade<'info> {
     ) -> Result<()>  {
 
         // Throw error when token amount to send does not match in state account
-        assert_eq!(token_a_to_send_amount, self.trade.token_a_to_send_amount);
+        assert_eq!(
+            self.trade.token_a_to_send_amount,
+            token_a_to_send_amount,
+            "Program has noted that trader will send {}. Trader sent {} instead.",
+            self.trade.token_a_to_send_amount,
+            token_a_to_send_amount,
+        );
 
         // Send Token A to self.token_a_pda
         transfer(
@@ -67,6 +73,15 @@ impl<'info> CancelTrade<'info> {
         // Confirm that given addresses are correct
         assert_eq!(self.trade.token_a_pda, self.token_a_pda_src.key());
         assert_eq!(self.trade.token_a_source, self.token_a_dest.key());
+
+        // Confirm that trade has began
+        assert_eq!(self.trade.trade_began, true, "Trade hasn't began yet.");
+
+        // Confirm that trade has not been cancelled
+        assert_ne!(self.trade.trade_cancelled, true, "Trade has been already cancelled.");
+
+        // Confirm that trade is not yet done
+        assert_ne!(self.trade.trade_done, true, "Trade is already done");
 
         let authority_seeds = &[
             self.trade.token_a_pda.as_ref(),
@@ -100,10 +115,17 @@ impl<'info> AcceptTrade<'info> {
     pub fn accept_trade(&mut self, token_b_to_send_amount: u64, trade_bump: &u8) -> Result<()>  {
 
         // Throw error when trade has been cancelled or trade is already done and user still accept the trade.
-        assert_eq!(self.trade.trade_cancelled || self.trade.trade_done, true);
+        assert_ne!(self.trade.trade_cancelled, true, "Trade has already been cancelled.");
+        assert_ne!(self.trade.trade_done, true, "Trade is already done.");
 
         // Throw error when requested amount by Alice is not given by Bob.
-        assert_eq!(self.trade.token_b_request_amount, token_b_to_send_amount);
+        assert_eq!(
+            self.trade.token_b_request_amount,
+            token_b_to_send_amount,
+            "Other party requested {}, trader gave {}.",
+            self.trade.token_b_request_amount,
+            token_b_to_send_amount,
+        );
 
         // Make sure that destination addresses are correct before transaction proceeds
         assert_eq!(self.trade.token_a_destination,  self.token_a_dest.key());

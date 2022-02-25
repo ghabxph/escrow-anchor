@@ -56,7 +56,7 @@ export async function prepareTokens(provider: anchor.Provider): Promise<PrepareT
     }
 }
 
-type Human = {
+export type Human = {
     keypair: Keypair,
     tokenA: Account,
     tokenB: Account,
