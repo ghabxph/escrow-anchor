@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
-import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { createMint, getOrCreateAssociatedTokenAccount, mintTo, Account } from '@solana/spl-token';
-import { token } from "@project-serum/anchor/dist/cjs/utils";
 
 const TOKEN_PER_UNIT = 1_000_000_000;
 
@@ -68,7 +67,7 @@ async function prepareHuman(connection: Connection, tokenA: Token, tokenB: Token
     const human = Keypair.generate();
 
     // Request sol airdrop (for human to be able to do transactions)
-    requestAirdrop(connection, human.publicKey, LAMPORTS_PER_SOL)
+    await requestAirdrop(connection, human.publicKey, LAMPORTS_PER_SOL)
 
     // Human's Token A Account
     const tokenAAccount = await getOrCreateAssociatedTokenAccount(
