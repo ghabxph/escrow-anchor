@@ -5,13 +5,63 @@ tutorial: https://paulx.dev/blog/2021/01/14/programming-on-solana-an-introductio
 
 **Devnet Program ID: 5v63TAY89KcCcAkNTFWm23bs23NYfiDLgaaKhvV78MCe**
 
-## Prerequisites
+## Explaining the escrow problem
+
+Alice and Bob wants to exchange X and Y tokens. They want to do it in a way that one cannot cheat the
+another. This is where Escrow program comes in.s
+
+The role of Escrow program is to hold X tokens. X tokens would then be released to other party when
+Y token requested by initiator is sent by the other party. In our case, Alice wants to send 1,000 X
+tokens to Bob for 1,500 Y tokens, thus, Bob needs to send 1,500 Y tokens in order for Bob to receive
+the 1,000 X token and for Alice to receive the 1,500 Y tokens. The escrow will act as their middleman.
+
+**This escrow program consists of 4 RPC methods:**
+
+1. initialize_accounts
+2. start_trade
+3. cancel_trade
+4. accept_trade
+
+To summarize the idea, the trade initiators needs a way to establish who are the participants of the
+trade, amount in which the initiator wants to send to other party, and the amount it want to receive
+from the other party. When the trade is started in which involves the initiator sending some X amount
+of token to the escrow program, the trader needs to be able to cancel the transaction to revert back
+his X tokens back to his wallet account.
+
+### initialize_accounts
+
+This RPC initializes 2 accounts: `token_a_pda` account and `trade` account. `token_a_pda` is temporary
+account where the X token is going to be stored. The `trade` account is our state account that will
+consist of information about how much token is Alice (trade initiator) is going to send to Bob (other
+party), their addresses and how much Alice wants to receive from Bob before the trade will succeed.
+Other state information such as whether the trade has started, cancelled, or finished is stored in this
+account as well.
+
+### start_trade
+
+This RPC marks the beginning of the trade. If Alice sents the correct amount to be sent to Bob, the
+X Token will be sent to `token_a_pda` account and will wait for Bob to accept the trade.
+
+### cancel_trade
+
+This RPC cancels the started trade. If the trade has already been accepted, this RPC call will fail.
+Upon success, tokens sent from this RPC will be received back by its rightful owner (Alice).
+
+### accept_trade
+
+This RPC marks the acceptance of the trade. If Bob sends the correct amount of Y tokens, then the
+trade will proceed and Bob shall receive X tokens from the `token_a_pda` account and Alice will
+receive Bob's Y tokens.
+
+## Developing Guide
+
+### Prerequisites
 
 * Rust 1.58.0
 * Anchor 0.22.0
 * Solana 1.8.16 (Mainnet Stable)
 
-## Running the test in devnet
+### Running the test in devnet
 
 Just run `anchor test` in this directory.
 
@@ -54,7 +104,7 @@ $ /home/gabriel/files/projects/ghabxph/escrow-anchor/node_modules/.bin/ts-mocha 
 Done in 22.56s.
 ```
 
-## Running the test in localnet
+### Running the test in localnet
 
 Go to Anchor.toml, and change provider.cluster to `localnet`. This is how it looks like:
 
